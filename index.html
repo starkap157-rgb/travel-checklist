@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>車中泊 持ち物チェックリスト</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      background: #f5f5f0;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #4a7c59;
+      color: white;
+      padding: 16px 20px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .header-sub {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .total-progress {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .reset-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .reset-btn:active {
+      background: rgba(255,255,255,0.35);
+    }
+
+    .progress-bar-wrap {
+      margin-top: 8px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 4px;
+      height: 5px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #c8e6c9;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    main {
+      padding: 12px 12px 80px;
+    }
+
+    .category {
+      background: white;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .category-header:active {
+      background: #f9f9f9;
+    }
+
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .category-icon {
+      font-size: 20px;
+    }
+
+    .category-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #222;
+    }
+
+    .category-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 12px;
+      color: #888;
+      background: #f0f0f0;
+      padding: 2px 9px;
+      border-radius: 12px;
+    }
+
+    .badge.done {
+      background: #e8f5e9;
+      color: #4a7c59;
+      font-weight: 600;
+    }
+
+    .chevron {
+      font-size: 12px;
+      color: #aaa;
+      transition: transform 0.2s;
+    }
+
+    .chevron.open {
+      transform: rotate(180deg);
+    }
+
+    .items-list {
+      display: none;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .items-list.open {
+      display: block;
+    }
+
+    .item {
+      display: flex;
+      align-items: flex-start;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .item:active {
+      background: #f9f9f9;
+    }
+
+    .item.checked {
+      background: #fafafa;
+    }
+
+    .checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      flex-shrink: 0;
+      margin-right: 12px;
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .item.checked .checkbox {
+      background: #4a7c59;
+      border-color: #4a7c59;
+    }
+
+    .checkbox-check {
+      display: none;
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .item.checked .checkbox-check {
+      display: block;
+    }
+
+    .item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: #222;
+      transition: color 0.2s;
+    }
+
+    .item.checked .item-name {
+      color: #aaa;
+      text-decoration: line-through;
+    }
+
+    .item-desc {
+      font-size: 12px;
+      color: #999;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .item.checked .item-desc {
+      color: #ccc;
+    }
+
+    /* sub_items */
+    .sub-items {
+      margin-top: 6px;
+    }
+
+    .sub-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px 8px 52px;
+      cursor: pointer;
+      border-bottom: 1px solid #f5f5f5;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sub-item:last-child {
+      border-bottom: none;
+    }
+
+    .sub-item:active {
+      background: #f9f9f9;
+    }
+
+    .sub-item.checked {
+      background: #fafafa;
+    }
+
+    .sub-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      flex-shrink: 0;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .sub-item.checked .sub-checkbox {
+      background: #4a7c59;
+      border-color: #4a7c59;
+    }
+
+    .sub-check {
+      display: none;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .sub-item.checked .sub-check {
+      display: block;
+    }
+
+    .sub-item-name {
+      font-size: 14px;
+      color: #333;
+      transition: color 0.2s;
+    }
+
+    .sub-item.checked .sub-item-name {
+      color: #aaa;
+      text-decoration: line-through;
+    }
+
+    .sub-item-desc {
+      font-size: 11px;
+      color: #bbb;
+      margin-left: 6px;
+    }
+
+    /* complete banner */
+    .complete-banner {
+      display: none;
+      text-align: center;
+      padding: 16px;
+      background: #e8f5e9;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      color: #2e7d32;
+      font-size: 15px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>車中泊 持ち物チェックリスト</h1>
+  <div class="header-sub">
+    <span class="total-progress" id="totalProgress">0 / 0 完了</span>
+    <button class="reset-btn" onclick="resetAll()">リセット</button>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="complete-banner" id="completeBanner">すべての準備完了！いってらっしゃい</div>
+</main>
+
+<script>
+const DATA = {"title":"車中泊 持ち物チェックリスト","version":"1.1","created":"2026-04-13","categories":[{"id":1,"name":"睡眠・プライバシー","items":[{"id":101,"name":"車中泊用マット","description":"段差をなくし底冷えを防ぐ","checked":false,"quantity":1},{"id":102,"name":"寝袋（シュラフ）または毛布","description":"季節に合わせたもの","checked":false,"quantity":1},{"id":103,"name":"サンシェード・カーテン","description":"全ての窓を塞ぎ、視線と光を遮断","checked":false,"quantity":null},{"id":104,"name":"枕","description":"普段使いのものが最もリラックスできる","checked":false,"quantity":1}]},{"id":2,"name":"防犯・電気・安全","items":[{"id":201,"name":"ポータブル電源・モバイルバッテリー","description":"スマホ充電や家電用","checked":false,"quantity":1},{"id":202,"name":"LEDランタン","description":"車内全体を照らす。予備電池も忘れずに","checked":false,"quantity":1},{"id":203,"name":"防犯ブザー","description":"手の届く場所に配置","checked":false,"quantity":1},{"id":204,"name":"身分証明書","description":"万一の備え","checked":false,"quantity":null},{"id":205,"name":"保険証","description":"万一の備え","checked":false,"quantity":null},{"id":206,"name":"現金（小銭）","description":"コイン精算用","checked":false,"quantity":null}]},{"id":3,"name":"化粧品","items":[{"id":301,"name":"スキンケア用品","description":null,"checked":false,"quantity":null,"sub_items":[{"id":3011,"name":"クレンジングシート","description":"水なしでメイク落とし","checked":false},{"id":3012,"name":"サボリーノ","description":null,"checked":false},{"id":3013,"name":"日焼け止め","description":"運転中の日差し対策","checked":false}]},{"id":302,"name":"化粧品","description":null,"checked":false,"quantity":null},{"id":303,"name":"ハンドクリーム・リップ","description":"乾燥対策","checked":false,"quantity":null}]},{"id":4,"name":"衛生","items":[{"id":401,"name":"ボディシート","description":"お風呂代わり","checked":false,"quantity":null},{"id":402,"name":"ドライシャンプー","description":"髪のベタつき解消","checked":false,"quantity":1},{"id":403,"name":"歯磨きセット","description":null,"checked":false,"quantity":null},{"id":404,"name":"携帯用トイレ","description":"緊急時や深夜の外出を避けるため","checked":false,"quantity":null},{"id":405,"name":"生理用品","description":null,"checked":false,"quantity":null},{"id":406,"name":"胃薬","description":null,"checked":false,"quantity":null}]},{"id":5,"name":"衣類・身だしなみ","items":[{"id":501,"name":"着替え・下着","description":"宿泊数＋1日分","checked":false,"quantity":null},{"id":502,"name":"パジャマ","description":"楽で、かつ外（トイレ）へ出ても恥ずかしくないもの","checked":false,"quantity":1},{"id":503,"name":"羽織りもの","description":"ストールやカーディガン","checked":false,"quantity":1},{"id":504,"name":"ヘアゴム・クリップ","description":"洗顔や食事用","checked":false,"quantity":null},{"id":505,"name":"ランドリーバッグ・圧縮袋","description":"荷物の整理用","checked":false,"quantity":null}]},{"id":6,"name":"調理器具・飲食","items":[{"id":601,"name":"熱源","description":null,"checked":false,"quantity":1},{"id":602,"name":"万能調理器","description":"メスティン","checked":false,"quantity":null},{"id":603,"name":"2段弁当箱","description":null,"checked":false,"quantity":1},{"id":604,"name":"食器","description":"シェラカップ、カトラリー（箸・スプーン）","checked":false,"quantity":null},{"id":605,"name":"キッチンバサミ","description":"包丁・まな板の代わり","checked":false,"quantity":1},{"id":606,"name":"アイラップ・アルミホイル","description":"鍋を汚さないための工夫","checked":false,"quantity":null},{"id":607,"name":"飲料水","description":"飲み水＋手洗い・うがい用（2L数本）","checked":false,"quantity":"2L×数本"},{"id":608,"name":"密閉ゴミ袋・キッチンペーパー","description":"汚れた食器の拭き取りと匂い漏れ防止","checked":false,"quantity":null},{"id":609,"name":"アルカリ電解水","description":null,"checked":false,"quantity":null}]},{"id":7,"name":"その他便利グッズ","items":[{"id":701,"name":"車用網戸・小型扇風機","description":"換気と結露対策","checked":false,"quantity":null},{"id":702,"name":"サンダル","description":"トイレへの移動を楽にする","checked":false,"quantity":1},{"id":703,"name":"S字フック・吊り下げ収納","description":"狭い車内の整理整頓","checked":false,"quantity":null},{"id":704,"name":"エコバッグ・不透明なビニール袋","description":"お土産やゴミ入れ","checked":false,"quantity":null}]}]};
+
+const ICONS = ['🛏️','🔒','💄','🚿','👗','🍳','🎒'];
+const STORAGE_KEY = 'kuroko_checklist_v1';
+
+// チェック状態をlocalStorageで管理
+let state = {};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) state = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function isChecked(id) {
+  return !!state[id];
+}
+
+function toggle(id) {
+  state[id] = !state[id];
+  saveState();
+  render();
+}
+
+// アイテムIDを全収集
+function allItemIds() {
+  const ids = [];
+  DATA.categories.forEach(cat => {
+    cat.items.forEach(item => {
+      ids.push(item.id);
+      if (item.sub_items) {
+        item.sub_items.forEach(sub => ids.push(sub.id));
+      }
+    });
+  });
+  return ids;
+}
+
+function countTotal() {
+  return allItemIds().length;
+}
+
+function countDone() {
+  return allItemIds().filter(id => isChecked(id)).length;
+}
+
+function catDone(cat) {
+  let done = 0, total = 0;
+  cat.items.forEach(item => {
+    total++;
+    if (isChecked(item.id)) done++;
+    if (item.sub_items) {
+      item.sub_items.forEach(sub => {
+        total++;
+        if (isChecked(sub.id)) done++;
+      });
+    }
+  });
+  return { done, total };
+}
+
+function render() {
+  const main = document.getElementById('main');
+  const banner = document.getElementById('completeBanner');
+  const done = countDone();
+  const total = countTotal();
+
+  document.getElementById('totalProgress').textContent = `${done} / ${total} 完了`;
+  document.getElementById('progressBar').style.width = total > 0 ? `${(done/total)*100}%` : '0%';
+
+  banner.style.display = (done === total && total > 0) ? 'block' : 'none';
+
+  // カテゴリの開閉状態を保持
+  const openCats = {};
+  main.querySelectorAll('.category').forEach(el => {
+    const id = el.dataset.catId;
+    openCats[id] = el.querySelector('.items-list').classList.contains('open');
+  });
+
+  // 初回はすべて閉じた状態（未チェックが1件でもあるカテゴリを開く）
+  const isFirstRender = Object.keys(openCats).length === 0;
+
+  // カテゴリ以外（バナー）を残して再構築
+  const existingCats = main.querySelectorAll('.category');
+  existingCats.forEach(el => el.remove());
+
+  DATA.categories.forEach((cat, idx) => {
+    const { done: cDone, total: cTotal } = catDone(cat);
+    const catOpen = isFirstRender ? (cDone < cTotal) : (openCats[String(cat.id)] ?? true);
+
+    const catEl = document.createElement('div');
+    catEl.className = 'category';
+    catEl.dataset.catId = cat.id;
+
+    const badgeClass = cDone === cTotal ? 'badge done' : 'badge';
+
+    catEl.innerHTML = `
+      <div class="category-header" onclick="toggleCat(this)">
+        <div class="category-title">
+          <span class="category-icon">${ICONS[idx] || '📦'}</span>
+          <span class="category-name">${cat.name}</span>
+        </div>
+        <div class="category-badge">
+          <span class="${badgeClass}">${cDone}/${cTotal}</span>
+          <span class="chevron${catOpen ? ' open' : ''}">▼</span>
+        </div>
+      </div>
+      <div class="items-list${catOpen ? ' open' : ''}">
+        ${cat.items.map(item => renderItem(item)).join('')}
+      </div>
+    `;
+
+    main.appendChild(catEl);
+  });
+}
+
+function renderItem(item) {
+  const checked = isChecked(item.id);
+  const hasSubItems = item.sub_items && item.sub_items.length > 0;
+
+  let subHtml = '';
+  if (hasSubItems) {
+    subHtml = item.sub_items.map(sub => {
+      const sc = isChecked(sub.id);
+      return `
+        <div class="sub-item${sc ? ' checked' : ''}" onclick="toggle(${sub.id})">
+          <div class="sub-checkbox"><span class="sub-check">✓</span></div>
+          <span class="sub-item-name">${sub.name}</span>
+          ${sub.description ? `<span class="sub-item-desc">${sub.description}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  return `
+    <div class="item${checked ? ' checked' : ''}" onclick="toggle(${item.id})">
+      <div class="checkbox"><span class="checkbox-check">✓</span></div>
+      <div class="item-content">
+        <div class="item-name">${item.name}</div>
+        ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
+      </div>
+    </div>
+    ${subHtml}
+  `;
+}
+
+function toggleCat(headerEl) {
+  const list = headerEl.nextElementSibling;
+  const chevron = headerEl.querySelector('.chevron');
+  list.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+function resetAll() {
+  if (!confirm('すべてのチェックをリセットしますか？')) return;
+  state = {};
+  saveState();
+  render();
+}
+
+loadState();
+render();
+</script>
+</body>
+</html>
